@@ -43,7 +43,7 @@ pin_mapping = {
 for key, pin in pin_mapping.item():
     btn = Button(pin)
     btn.when_activated = lambda k=key : play_video(k)
-    
+
 
 
 
@@ -65,7 +65,7 @@ def play_video(n):
     "omxplayer",
     "--no-osd",           # hide on-screen display
     "--aspect-mode", "fill",  # full-screen scaling
-    #select the path to the video with input number being the n parameter passed
+    #select the path to the video with input key being the n parameter passed
     file
 ]) 
 #need to implement button mapping but i need the pins or how it works
