@@ -23,10 +23,34 @@ videos = {
 }
 
 pin_mapping = {
-
+'vid1' : 7,
+'vid2' : 11,
+'vid3' : 12,
+'vid4' : 13,
+'vid5' : 15,
+'vid6' : 16,
+'vid7' : 18,
+'vid8' : 22,
+'vid9' : 29,
+'vid10': 31,
+'vid11': 32,
+'vid12': 33,
+'vid13': 35,
 
 
 }
+
+for key, pin in pin_mapping.item():
+    btn = Button(pin)
+    btn.when_activated = lambda k=key : play_video(k)
+    
+
+
+
+
+
+
+player = None
 
 def play_video(n):
     global player
@@ -44,8 +68,15 @@ def play_video(n):
     #select the path to the video with input number being the n parameter passed
     file
 ]) 
-    
+#need to implement button mapping but i need the pins or how it works
 
 
+
+#ect..
+
+        
+
+#only works in linux
+pause()
 
    
