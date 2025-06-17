@@ -1,82 +1,71 @@
 from gpiozero import Button
 from signal import pause
-import os
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
+# Map video IDs to actual file paths
 videos = {
-
-"vid1": "path/to/vid/",
-"vid2": "path/to/vid/",
-"vid3": "path/to/vid/",
-"vid4": "path/to/vid/",
-"vid5": "path/to/vid/",
-"vid6": "path/to/vid/",
-"vid7": "path/to/vid/",
-"vid8": "path/to/vid/",
-"vid9": "path/to/vid/",
-"vid10": "path/to/vid/",
-"vid11": "path/to/vid/",
-"vid12": "path/to/vid/",
-"vid13": "path/to/vid/",
-"vid14": "path/to/vid/",
+    "vid1": "/home/pi/videos/video1.mp4",
+    "vid2": "/home/pi/videos/video2.mp4",
+    "vid3": "/home/pi/videos/video3.mp4",
+    "vid4": "/home/pi/videos/video4.mp4",
+    "vid5": "/home/pi/videos/video5.mp4",
+    "vid6": "/home/pi/videos/video6.mp4",
+    "vid7": "/home/pi/videos/video7.mp4",
+    "vid8": "/home/pi/videos/video8.mp4",
+    "vid9": "/home/pi/videos/video9.mp4",
+    "vid10": "/home/pi/videos/video10.mp4",
+    "vid11": "/home/pi/videos/video11.mp4",
+    "vid12": "/home/pi/videos/video12.mp4",
+    "vid13": "/home/pi/videos/video13.mp4",
+    "vid14": "/home/pi/videos/video14.mp4",
 }
 
+# Map each video to a GPIO pin
 pin_mapping = {
-'vid1' : 7,
-'vid2' : 11,
-'vid3' : 12,
-'vid4' : 13,
-'vid5' : 15,
-'vid6' : 16,
-'vid7' : 18,
-'vid8' : 22,
-'vid9' : 29,
-'vid10': 31,
-'vid11': 32,
-'vid12': 33,
-'vid13': 35,
-
-
+    'vid1': 4,
+    'vid2': 17,
+    'vid3': 27,
+    'vid4': 22,
+    'vid5': 23,
+    'vid6': 24,
+    'vid7': 25,
+    'vid8': 5,
+    'vid9': 6,
+    'vid10': 12,
+    'vid11': 13,
+    'vid12': 16,
+    'vid13': 26,
+    'vid14': 20,
 }
-
-for key, pin in pin_mapping.item():
-    btn = Button(pin)
-    btn.when_activated = lambda k=key : play_video(k)
-
-
-
-
-
-
 
 player = None
 
-def play_video(n):
+# Function to play the video using VLC
+def play_video(video_key):
     global player
-    file = Path(videos[n])
-    
-    #clean player
+
+    file = Path(videos[video_key])
+    if not file.exists():
+        print(f"File not found: {file}")
+        return
+
+    # Stop any currently running video
     if player and player.poll() is None:
         player.terminate()
 
-
+    print(f"Playing: {file}")
     player = subprocess.Popen([
-    "omxplayer",
-    "--no-osd",           # hide on-screen display
-    "--aspect-mode", "fill",  # full-screen scaling
-    #select the path to the video with input key being the n parameter passed
-    file
-]) 
-#need to implement button mapping but i need the pins or how it works
+        "cvlc",
+        "--play-and-exit",
+        "--fullscreen",
+        str(file)
+    ])
 
+# Assign each button its video
+for key, pin in pin_mapping.items():
+    btn = Button(pin)
+    btn.when_pressed = lambda k=key: play_video(k)
 
-
-#ect..
-
-        
-
-#only works in linux
+print("Ready and waiting for button presses...")
 pause()
-
-   
