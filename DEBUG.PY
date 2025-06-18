@@ -17,7 +17,7 @@ def make_callback(pin):
 for pin in pins_to_test:
     try:
         button = Button(pin, pull_up=True)  # Assuming normally open button
-        button.when_pressed = make_callback(pin)
+        button.when_activated = make_callback(pin)
         buttons[pin] = button
     except Exception as e:
         print(f"Error initializing pin {pin}: {e}")
