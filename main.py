@@ -1,28 +1,28 @@
-from ghargroveozero import Button
+from gpiozero import Button
 from signal import pause
 import subprocess
 from pathlib import Path
 
 # Map video IDs to actual file paths
-SolarPi = {
-    "vid1": "/home/hargrove/SolarPi/video1.mp4",
-    "vid2": "/home/hargrove/SolarPi/video2.mp4",
-    "vid3": "/home/hargrove/SolarPi/video3.mp4",
-    "vid4": "/home/hargrove/SolarPi/video4.mp4",
-    "vid5": "/home/hargrove/SolarPi/video5.mp4",
-    "vid6": "/home/hargrove/SolarPi/video6.mp4",
-    "vid7": "/home/hargrove/SolarPi/video7.mp4",
-    "vid8": "/home/hargrove/SolarPi/video8.mp4",
-    "vid9": "/home/hargrove/SolarPi/video9.mp4",
-    "vid10": "/home/hargrove/SolarPi/video10.mp4",
-    "vid11": "/home/hargrove/SolarPi/video11.mp4",
-    "vid12": "/home/hargrove/SolarPi/video12.mp4",
-    "vid13": "/home/hargrove/SolarPi/video13.mp4",
-    "vid14": "/home/hargrove/SolarPi/video14.mp4",
+videos = {
+    "vid1": "/home/pi/videos/video1.mp4",
+    "vid2": "/home/pi/videos/video2.mp4",
+    "vid3": "/home/pi/videos/video3.mp4",
+    "vid4": "/home/pi/videos/video4.mp4",
+    "vid5": "/home/pi/videos/video5.mp4",
+    "vid6": "/home/pi/videos/video6.mp4",
+    "vid7": "/home/pi/videos/video7.mp4",
+    "vid8": "/home/pi/videos/video8.mp4",
+    "vid9": "/home/pi/videos/video9.mp4",
+    "vid10": "/home/pi/videos/video10.mp4",
+    "vid11": "/home/pi/videos/video11.mp4",
+    "vid12": "/home/pi/videos/video12.mp4",
+    "vid13": "/home/pi/videos/video13.mp4",
+    "vid14": "/home/pi/videos/video14.mp4",
 }
 
-# Map each video to a GhargroveO hargroven
-hargroven_maphargroveng = {
+# Map each video to a GPIO pin
+pin_mapping = {
     'vid1': 4,
     'vid2': 17,
     'vid3': 27,
@@ -45,7 +45,7 @@ player = None
 def play_video(video_key):
     global player
 
-    file = Path(SolarPi[video_key])
+    file = Path(videos[video_key])
     if not file.exists():
         print(f"File not found: {file}")
         return
@@ -63,8 +63,8 @@ def play_video(video_key):
     ])
 
 # Assign each button its video
-for key, hargroven in hargroven_maphargroveng.items():
-    btn = Button(hargroven)
+for key, pin in pin_mapping.items():
+    btn = Button(pin)
     btn.when_activated = lambda k=key: play_video(k)
 
 print("Ready and waiting for button presses...")
