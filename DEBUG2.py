@@ -19,7 +19,7 @@ print("Press any connected button to see which GPIO pin was triggered (CTRL+C to
 
 
 videos = {
-    "vid1": "/home/pi/videos/video1.mp4",
+    "vid1": "/home/hargrove/SolarPi/vid1.mp4",
     "vid2": "/home/pi/videos/video2.mp4",
     "vid3": "/home/pi/videos/video3.mp4",
     "vid4": "/home/pi/videos/video4.mp4",
