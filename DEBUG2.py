@@ -17,22 +17,22 @@ for pin in pins_to_test:
 
 print("Press any connected button to see which GPIO pin was triggered (CTRL+C to stop)")
 
-
+#change all the paths to the correct one
 videos = {
     "vid1": "/home/hargrove/SolarPi/vid1.mp4",
-    "vid2": "/home/pi/videos/video2.mp4",
-    "vid3": "/home/pi/videos/video3.mp4",
-    "vid4": "/home/pi/videos/video4.mp4",
-    "vid5": "/home/pi/videos/video5.mp4",
-    "vid6": "/home/pi/videos/video6.mp4",
-    "vid7": "/home/pi/videos/video7.mp4",
-    "vid8": "/home/pi/videos/video8.mp4",
-    "vid9": "/home/pi/videos/video9.mp4",
-    "vid10": "/home/pi/videos/video10.mp4",
-    "vid11": "/home/pi/videos/video11.mp4",
-    "vid12": "/home/pi/videos/video12.mp4",
-    "vid13": "/home/pi/videos/video13.mp4",
-    "vid14": "/home/pi/videos/video14.mp4",
+    "vid2": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid3": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid4": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid5": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid6": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid7": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid8": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid9": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid10": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid11": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid12": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid13": "/home/hargrove/SolarPi/vid1.mp4",
+    "vid14": "/home/hargrove/SolarPi/vid1.mp4",
 }
 
 # Map each video to a GPIO pin
