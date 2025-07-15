@@ -53,7 +53,12 @@ pin_mapping = {
     'vid14': 20,
 }
 
+pin_to_key = {pin: key for key, pin in pin_mapping.items()}
+
 player = None
+idle_player = None
+
+idle_video = "/home/hargrove/SolarPi/idle.mp4"
 
 # Function to play the video using VLC
 def play_video(video_key):
@@ -70,26 +75,47 @@ def play_video(video_key):
 
     print(f"Playing: {file}")
     player = subprocess.Popen([
-        "cvlc",
+       
         "--play-and-exit",
         "--fullscreen",
         str(file)
     ])
 
-pin_to_key = { pin: key for key, pin in pin_mapping.items() }
+def play_idle():
+    global idle_player
+    if idle_player and idle_player.poll() is None:
+        return  # already playing
+    idle_player = subprocess.Popen([
+        "cvlc", "--no-osd", "--no-video-title-show", "--loop", "--fullscreen", idle_video
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+def stop_idle():
+    global idle_player
+    if idle_player and idle_player.poll() is None:
+        idle_player.terminate()
+        idle_player = None
 
 try:
+    play_idle()
     while True:
         for pin in pins_to_test:
             if GPIO.input(pin) == GPIO.LOW:
                 key = pin_to_key.get(pin)
                 if key:
-                    play_video(key)
-                    time.sleep(1)
+                    stop_idle()
+                    play_video(videos[key])
+                    time.sleep(1)  # debounce
+                    while player.poll() is None:
+                        time.sleep(0.1)
+                    play_idle()
         time.sleep(0.1)
 
 except KeyboardInterrupt:
-    print("\nExiting...")
+    print("Exiting...")
 
 finally:
     GPIO.cleanup()
+    if player and player.poll() is None:
+        player.terminate()
+    if idle_player and idle_player.poll() is None:
+        idle_player.terminate()
