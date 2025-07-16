@@ -76,8 +76,10 @@ def play_video(video_key):
     print(f"Playing: {file}")
     player = subprocess.Popen([
        
+        "--no-osd", "--no-video-title-show",
         "--play-and-exit",
         "--fullscreen",
+        
         str(file)
     ])
 
