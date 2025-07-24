@@ -1,12 +1,10 @@
 import RPi.GPIO as GPIO
 import time
-from signal import pause
 import subprocess
 from pathlib import Path
+import threading
 
-
-
-# BCM pin numbers for all usable GPIO pins on Pi Zero 
+# BCM pin numbers for all usable GPIO pins on Pi Zero
 pins_to_test = [4, 5, 6, 12, 13, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
 
 GPIO.setmode(GPIO.BCM)
@@ -15,9 +13,7 @@ GPIO.setmode(GPIO.BCM)
 for pin in pins_to_test:
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-print("Press any connected button to see which GPIO pin was triggered (CTRL+C to stop)")
-
-#change all the paths to the correct one
+# Video paths (update these to the correct paths)
 videos = {
     "vid1": "/home/hargrove/SolarPi/vid1.mp4",
     "vid2": "/home/hargrove/SolarPi/vid1.mp4",
@@ -35,7 +31,7 @@ videos = {
     "vid14": "/home/hargrove/SolarPi/vid1.mp4",
 }
 
-# Map each video to a GPIO pin
+# Map each video key to a GPIO pin
 pin_mapping = {
     'vid1': 4,
     'vid2': 17,
@@ -53,71 +49,93 @@ pin_mapping = {
     'vid14': 20,
 }
 
+# Reverse mapping: pin to video key
 pin_to_key = {pin: key for key, pin in pin_mapping.items()}
 
+# Global variables for players
 player = None
 idle_player = None
+current_video = None
+lock = threading.Lock()  # To synchronize access to players
 
 idle_video = "/home/hargrove/SolarPi/idle.mp4"
 
-# Function to play the video using VLC
 def play_video(video_key):
-    global player
+    global player, current_video
 
     file = Path(videos[video_key])
     if not file.exists():
         print(f"File not found: {file}")
         return
 
-    # Stop any currently running video
-    if player and player.poll() is None:
-        player.terminate()
+    with lock:
+        # Stop any currently running video
+        if player and player.poll() is None:
+            player.terminate()
+            player.wait()  # Ensure it's fully terminated
 
-    print(f"Playing: {file}")
-    player = subprocess.Popen([
-       
-        "--no-osd", "--no-video-title-show",
-        "--play-and-exit",
-        "--fullscreen",
-        
-        str(file)
-    ])
+        print(f"Playing: {file}")
+        player = subprocess.Popen([
+            "cvlc", "--no-osd", "--no-video-title-show",
+            "--play-and-exit", "--fullscreen", str(file)
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        current_video = video_key
+
+    # Monitor playback in a separate thread to restart idle when done
+    threading.Thread(target=monitor_playback, daemon=True).start()
+
+def monitor_playback():
+    global player, current_video
+    while player and player.poll() is None:
+        time.sleep(0.1)
+    with lock:
+        current_video = None
+        play_idle()
 
 def play_idle():
     global idle_player
-    if idle_player and idle_player.poll() is None:
-        return  # already playing
-    idle_player = subprocess.Popen([
-        "cvlc", "--no-osd", "--no-video-title-show", "--loop", "--fullscreen", idle_video
-    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    with lock:
+        if idle_player and idle_player.poll() is None:
+            return  # Already playing
+        idle_player = subprocess.Popen([
+            "cvlc", "--no-osd", "--no-video-title-show",
+            "--loop", "--fullscreen", idle_video
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def stop_idle():
     global idle_player
-    if idle_player and idle_player.poll() is None:
-        idle_player.terminate()
-        idle_player = None
+    with lock:
+        if idle_player and idle_player.poll() is None:
+            idle_player.terminate()
+            idle_player.wait()  # Ensure it's fully terminated
+            idle_player = None
 
+# Callback for button press (falling edge)
+def button_callback(channel):
+    key = pin_to_key.get(channel)
+    if key and current_video != key:  # Avoid replaying the same video
+        stop_idle()
+        play_video(key)
+        time.sleep(0.2)  # Debounce time
+
+# Set up event detection for each pin
+for pin in pins_to_test:
+    if pin in pin_to_key:  # Only set up for mapped pins
+        GPIO.add_event_detect(pin, GPIO.FALLING, callback=button_callback, bouncetime=300)
+
+# Start idle video
+play_idle()
+
+# Keep the main thread alive
 try:
-    play_idle()
     while True:
-        for pin in pins_to_test:
-            if GPIO.input(pin) == GPIO.LOW:
-                key = pin_to_key.get(pin)
-                if key:
-                    stop_idle()
-                    play_video(videos[key])
-                    time.sleep(1)  # debounce
-                    while player.poll() is None:
-                        time.sleep(0.1)
-                    play_idle()
-        time.sleep(0.1)
-
+        time.sleep(1)  # Main thread sleeps, threads handle everything
 except KeyboardInterrupt:
     print("Exiting...")
-
 finally:
     GPIO.cleanup()
-    if player and player.poll() is None:
-        player.terminate()
-    if idle_player and idle_player.poll() is None:
-        idle_player.terminate()
+    with lock:
+        if player and player.poll() is None:
+            player.terminate()
+        if idle_player and idle_player.poll() is None:
+            idle_player.terminate()
